@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -19,6 +20,7 @@ func main() {
 	npeers := flag.Int("n", 1, "Number of embedded peers")
 	quiet := flag.Bool("q", false, "Only log errors")
 	file := flag.String("f", "", "Output file; use Stdout if omitted")
+	idFile := flag.String("id", "", "permanent identity file")
 	flag.Parse()
 
 	if *quiet {
@@ -43,7 +45,7 @@ func main() {
 	var wg sync.WaitGroup
 	for i := 0; i < *npeers; i++ {
 		wg.Add(1)
-		n, err := NewNode(logger)
+		n, err := NewNode(logger, fmt.Sprintf("%s.%d", *idFile, i))
 		if err != nil {
 			log.Errorf("error creating peer: %s", err)
 			os.Exit(1)

@@ -44,13 +44,23 @@ type Node struct {
 	logger *Logger
 }
 
-func NewNode(l *Logger) (*Node, error) {
-	h, err := libp2p.New(context.Background(),
+func NewNode(l *Logger, idFile string) (*Node, error) {
+	opts := []libp2p.Option{
 		libp2p.DisableRelay(),
 		libp2p.NoListenAddrs,
 		libp2p.Security(noise.ID, noise.New),
 		libp2p.Security(tls.ID, tls.New),
-	)
+	}
+
+	if idFile != "" {
+		privk, err := loadIdentity(idFile)
+		if err != nil {
+			return nil, err
+		}
+		opts = append(opts, libp2p.Identity(privk))
+	}
+
+	h, err := libp2p.New(context.Background(), opts...)
 	if err != nil {
 		return nil, err
 	}

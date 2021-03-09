@@ -124,6 +124,8 @@ func (n *Node) handleGSStream(in network.Stream) {
 	defer in.Close()
 
 	p := in.Conn().RemotePeer()
+	defer n.host.Network().ClosePeer(p)
+
 	log.Debugf("inbound stream from %s; opening outbound stream", p)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	out, err := n.host.NewStream(ctx, p, pubsub.GossipSubID_v11)

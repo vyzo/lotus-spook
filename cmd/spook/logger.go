@@ -46,7 +46,7 @@ func (l *Logger) AddPeer(p peer.ID, peerRecord []byte) {
 
 	seqno, ok := l.peers[p]
 	if ok && rec.Seq <= seqno {
-		log.Debugf("ignoring peer record for %s; seqno %d is not newer than existing seqno %d", rec.Seq, seqno)
+		log.Debugf("ignoring peer record for %s; seqno %d is not newer than existing seqno %d", p, rec.Seq, seqno)
 		return
 	}
 

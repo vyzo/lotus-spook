@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -115,7 +116,7 @@ func (n *Node) connect(pi *peer.AddrInfo) {
 		log.Debugf("connected to bootstrapper %s", pi.ID)
 
 		for n.host.Network().Connectedness(pi.ID) == network.Connected {
-			time.Sleep(time.Minute)
+			time.Sleep(10 * time.Minute)
 		}
 	}
 }
@@ -209,7 +210,7 @@ func (n *Node) handleGSStream(in network.Stream) {
 			}
 
 			go func(topic string) {
-				time.Sleep(time.Second * time.Duration(backoff))
+				time.Sleep(time.Duration(backoff)*time.Second + time.Duration(1+rand.Intn(10))*time.Second)
 				rpc := &pb.RPC{
 					Control: &pb.ControlMessage{
 						Graft: []*pb.ControlGraft{

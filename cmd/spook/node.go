@@ -70,12 +70,13 @@ func NewNode(l *Logger, idFile string) (*Node, error) {
 		logger: l,
 	}
 	h.SetStreamHandler(pubsub.GossipSubID_v11, n.handleGSStream)
-	h.SetStreamHandler(HelloProtocolID, n.handleHelloStream)
+	//h.SetStreamHandler(HelloProtocolID, n.handleHelloStream)
 
 	return n, nil
 }
 
 func (n *Node) Background(wg *sync.WaitGroup) {
+	boot := 0
 	for i, a := range bootstrappers {
 		addr, err := ma.NewMultiaddr(a)
 		if err != nil {
@@ -90,6 +91,11 @@ func (n *Node) Background(wg *sync.WaitGroup) {
 		}
 
 		go n.connect(pi)
+		boot++
+	}
+
+	if boot == 0 {
+		wg.Done()
 	}
 }
 

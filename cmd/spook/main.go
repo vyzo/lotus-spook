@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"sync"
 
 	logging "github.com/ipfs/go-log"
@@ -21,10 +22,15 @@ func main() {
 	quiet := flag.Bool("q", false, "Only log errors")
 	file := flag.String("f", "", "Output file; use Stdout if omitted")
 	idPath := flag.String("id", "", "permanent identity file")
+	userBootstrappers := flag.String("b", "", "coma separated list of bootstrappers")
 	flag.Parse()
 
 	if *quiet {
 		logging.SetLogLevel("*", "ERROR")
+	}
+
+	if *userBootstrappers != "" {
+		bootstrappers = strings.Split(*userBootstrappers, ",")
 	}
 
 	var w io.Writer

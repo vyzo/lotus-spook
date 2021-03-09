@@ -16,7 +16,7 @@ func init() {
 }
 
 func main() {
-	npeers := flag.Int("n", 5, "Number of embedded peers")
+	npeers := flag.Int("n", 1, "Number of embedded peers")
 	quiet := flag.Bool("q", false, "Only log errors")
 	file := flag.String("f", "", "Output file; use Stdout if omitted")
 	flag.Parse()

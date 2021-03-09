@@ -148,7 +148,7 @@ func (n *Node) handleGSStream(in network.Stream) {
 	}
 
 	rpc.Reset()
-	rpc.Subscriptions = subs
+	//rpc.Subscriptions = subs
 	rpc.Control = &pb.ControlMessage{Graft: graft}
 	log.Debugf("writing hello packet to %s", p)
 	err = w.WriteMsg(&rpc)

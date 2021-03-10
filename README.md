@@ -1,5 +1,5 @@
 # lotus-spook
-A simple tool for snarfing peer ID/Addr tuples from the bootstrappers.
+A simple tool for snarfing peer records from the bootstrappers throug PX.
 
 Run:
 ```

@@ -43,6 +43,9 @@ var bootstrappers = []string{
 type Node struct {
 	host   host.Host
 	logger *Logger
+
+	sync.Mutex
+	nextGraft map[peer.ID]time.Time
 }
 
 func NewNode(l *Logger, idFile string) (*Node, error) {
@@ -67,8 +70,9 @@ func NewNode(l *Logger, idFile string) (*Node, error) {
 	}
 
 	n := &Node{
-		host:   h,
-		logger: l,
+		host:      h,
+		logger:    l,
+		nextGraft: make(map[peer.ID]time.Time),
 	}
 	h.SetStreamHandler(pubsub.GossipSubID_v11, n.handleGSStream)
 	//h.SetStreamHandler(HelloProtocolID, n.handleHelloStream)
@@ -116,7 +120,7 @@ func (n *Node) connect(pi *peer.AddrInfo) {
 		log.Debugf("connected to bootstrapper %s", pi.ID)
 
 		for n.host.Network().Connectedness(pi.ID) == network.Connected {
-			time.Sleep(10 * time.Minute)
+			time.Sleep(5 * time.Minute)
 		}
 	}
 }
@@ -166,6 +170,17 @@ func (n *Node) handleGSStream(in network.Stream) {
 		graft = append(graft, &pb.ControlGraft{TopicID: topic})
 	}
 
+	n.Lock()
+	nextGraft, ok := n.nextGraft[p]
+	n.Unlock()
+
+	now := time.Now()
+	if ok && now.Before(nextGraft) {
+		wait := nextGraft.Sub(now) + time.Second
+		log.Debugf("waiting %s for next graft", wait)
+		time.Sleep(wait)
+	}
+
 	rpc.Reset()
 	//rpc.Subscriptions = subs
 	rpc.Control = &pb.ControlMessage{Graft: graft}
@@ -209,8 +224,13 @@ func (n *Node) handleGSStream(in network.Stream) {
 				}
 			}
 
+			wait := time.Duration(backoff) * time.Second
+			nextGraft := time.Now().Add(wait)
+			n.Lock()
+			n.nextGraft[p] = nextGraft
+			n.Unlock()
 			go func(topic string) {
-				time.Sleep(time.Duration(backoff)*time.Second + time.Duration(1+rand.Intn(10))*time.Second)
+				time.Sleep(wait + time.Duration(1+rand.Intn(10))*time.Second)
 				rpc := &pb.RPC{
 					Control: &pb.ControlMessage{
 						Graft: []*pb.ControlGraft{

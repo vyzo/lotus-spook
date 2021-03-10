@@ -214,8 +214,9 @@ func (n *Node) handleGSStream(in network.Stream) {
 			topic := prune.GetTopicID()
 			peers := prune.GetPeers()
 			backoff := prune.GetBackoff()
+			wait := time.Duration(backoff) * time.Second
 
-			log.Debugf("got pruned by %s in %s; PX returned %d peers", p, topic, len(peers))
+			log.Debugf("got pruned by %s in %s; PX returned %d peers; backfoff: %s", p, topic, len(peers), wait)
 
 			for _, pi := range peers {
 				spr := pi.GetSignedPeerRecord()
@@ -224,13 +225,14 @@ func (n *Node) handleGSStream(in network.Stream) {
 				}
 			}
 
-			wait := time.Duration(backoff) * time.Second
 			nextGraft := time.Now().Add(wait)
 			n.Lock()
 			n.nextGraft[p] = nextGraft
 			n.Unlock()
 			go func(topic string) {
-				time.Sleep(wait + time.Duration(1+rand.Intn(10))*time.Second)
+				sleep := wait + time.Duration(1+rand.Intn(10))*time.Second
+				log.Debugf("waiting for %s before next graft", sleep)
+				time.Sleep(sleep)
 				rpc := &pb.RPC{
 					Control: &pb.ControlMessage{
 						Graft: []*pb.ControlGraft{
